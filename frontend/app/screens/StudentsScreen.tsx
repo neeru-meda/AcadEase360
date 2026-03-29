@@ -9,23 +9,33 @@ import {
   RefreshControl
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONTS } from '../utils/theme';
-import { studentAPI, analyticsAPI } from '../utils/api';
+import { studentAPI } from '../utils/api';
+import { Picker } from '@react-native-picker/picker';
 
 export default function StudentsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
+  const [selectedClass, setSelectedClass] = useState('All');
   const [filter, setFilter] = useState<'all' | 'eligible' | 'shortage'>('all');
+
+  const classes = ['All', 'Class A', 'Class B', 'Class C', 'Class D'];
 
   useEffect(() => {
     fetchStudents();
-  }, []);
+  }, [selectedClass]);
 
   const fetchStudents = async () => {
     try {
       const data = await studentAPI.getAll();
-      setStudents(data.students);
+      if (selectedClass === 'All') {
+        setStudents(data.students);
+      } else {
+        const filtered = data.students.filter((s: any) => s.className === selectedClass);
+        setStudents(filtered);
+      }
     } catch (error) {
       console.error('Failed to fetch students:', error);
     } finally {
@@ -49,49 +59,67 @@ export default function StudentsScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size='large' color={COLORS.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Students</Text>
-        <Text style={styles.headerSubtitle}>{students.length} Total Students</Text>
+        <Text style={styles.headerSubtitle}>{students.length} Students</Text>
       </View>
 
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[styles.filterChip, filter === 'all' && styles.filterChipActive]}
-          onPress={() => setFilter('all')}
-        >
-          <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
-            All
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterChip, filter === 'eligible' && styles.filterChipActive]}
-          onPress={() => setFilter('eligible')}
-        >
-          <Text style={[styles.filterText, filter === 'eligible' && styles.filterTextActive]}>
-            Eligible
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterChip, filter === 'shortage' && styles.filterChipActive]}
-          onPress={() => setFilter('shortage')}
-        >
-          <Text style={[styles.filterText, filter === 'shortage' && styles.filterTextActive]}>
-            Shortage
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.filtersContainer}>
+        <View style={styles.pickerContainer}>
+          <Text style={styles.label}>Class</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={selectedClass}
+              onValueChange={setSelectedClass}
+              style={styles.picker}
+            >
+              {classes.map(cls => (
+                <Picker.Item key={cls} label={cls} value={cls} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        <View style={styles.filterChips}>
+          <TouchableOpacity
+            style={[styles.filterChip, filter === 'all' && styles.filterChipActive]}
+            onPress={() => setFilter('all')}
+          >
+            <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
+              All
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterChip, filter === 'eligible' && styles.filterChipActive]}
+            onPress={() => setFilter('eligible')}
+          >
+            <Text style={[styles.filterText, filter === 'eligible' && styles.filterTextActive]}>
+              Eligible
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterChip, filter === 'shortage' && styles.filterChipActive]}
+            onPress={() => setFilter('shortage')}
+          >
+            <Text style={[styles.filterText, filter === 'shortage' && styles.filterTextActive]}>
+              Shortage
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
         style={styles.list}
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
       >
         {filteredStudents.map(student => (
           <View
@@ -104,7 +132,7 @@ export default function StudentsScreen() {
             <View style={styles.studentHeader}>
               <View>
                 <Text style={styles.studentName}>{student.name}</Text>
-                <Text style={styles.studentRoll}>{student.rollNo}</Text>
+                <Text style={styles.studentRoll}>{student.rollNo} • {student.className}</Text>
               </View>
               <View
                 style={[
@@ -147,11 +175,19 @@ export default function StudentsScreen() {
                 <Text style={styles.subjectLabel}>OS</Text>
                 <Text style={styles.subjectValue}>{student.subjectAttendance.os.toFixed(1)}%</Text>
               </View>
+              <View style={styles.subjectItem}>
+                <Text style={styles.subjectLabel}>CN</Text>
+                <Text style={styles.subjectValue}>{student.subjectAttendance.cn.toFixed(1)}%</Text>
+              </View>
+              <View style={styles.subjectItem}>
+                <Text style={styles.subjectLabel}>SE</Text>
+                <Text style={styles.subjectValue}>{student.subjectAttendance.se.toFixed(1)}%</Text>
+              </View>
             </View>
           </View>
         ))}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -168,12 +204,13 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: SPACING.md,
+    paddingTop: SPACING.sm,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border
   },
   headerTitle: {
-    fontSize: FONTS.sizes.xl,
+    fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.primary,
     marginBottom: SPACING.xs
@@ -182,19 +219,45 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.sm,
     color: COLORS.darkGray
   },
-  filterContainer: {
-    flexDirection: 'row',
+  filtersContainer: {
     padding: SPACING.md,
-    gap: SPACING.sm,
-    backgroundColor: COLORS.white
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    gap: SPACING.md
+  },
+  pickerContainer: {
+    marginBottom: 0
+  },
+  label: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.xs
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    backgroundColor: COLORS.white,
+    overflow: 'hidden'
+  },
+  picker: {
+    height: 45
+  },
+  filterChips: {
+    flexDirection: 'row',
+    gap: SPACING.sm
   },
   filterChip: {
+    flex: 1,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
-    backgroundColor: COLORS.white
+    backgroundColor: COLORS.white,
+    alignItems: 'center'
   },
   filterChipActive: {
     backgroundColor: COLORS.primary,
@@ -241,7 +304,7 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     fontWeight: 'bold',
     color: COLORS.text,
-    marginBottom: SPACING.xs
+    marginBottom: 4
   },
   studentRoll: {
     fontSize: FONTS.sizes.sm,
@@ -288,19 +351,22 @@ const styles = StyleSheet.create({
   },
   subjectAttendance: {
     flexDirection: 'row',
-    gap: SPACING.md
+    gap: SPACING.xs
   },
   subjectItem: {
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGray,
+    padding: SPACING.xs,
+    borderRadius: 6
   },
   subjectLabel: {
-    fontSize: FONTS.sizes.xs,
+    fontSize: 10,
     color: COLORS.darkGray,
-    marginBottom: SPACING.xs
+    marginBottom: 2
   },
   subjectValue: {
-    fontSize: FONTS.sizes.sm,
+    fontSize: FONTS.sizes.xs,
     fontWeight: 'bold',
     color: COLORS.text
   }

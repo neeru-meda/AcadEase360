@@ -9,34 +9,39 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONTS } from '../utils/theme';
 import { studentAPI, attendanceAPI } from '../utils/api';
 import { format } from 'date-fns';
+import { Picker } from '@react-native-picker/picker';
 
 export default function AttendanceScreen() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [students, setStudents] = useState<any[]>([]);
+  const [selectedClass, setSelectedClass] = useState('Class A');
   const [subject, setSubject] = useState('Math');
   const [period, setPeriod] = useState('1');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [attendance, setAttendance] = useState<{ [key: string]: string }>({});
 
-  const subjects = ['Math', 'DBMS', 'OS'];
+  const classes = ['Class A', 'Class B', 'Class C', 'Class D'];
+  const subjects = ['Math', 'DBMS', 'OS', 'CN', 'SE'];
   const periods = ['1', '2', '3', '4', '5', '6'];
 
   useEffect(() => {
     fetchStudents();
-  }, []);
+  }, [selectedClass]);
 
   const fetchStudents = async () => {
     try {
       const data = await studentAPI.getAll();
-      setStudents(data.students);
-      // Initialize all as Present
+      const classStudents = data.students.filter((s: any) => s.className === selectedClass);
+      setStudents(classStudents);
+      // Initialize all as Absent (as per requirement)
       const initialAttendance: any = {};
-      data.students.forEach((s: any) => {
-        initialAttendance[s.rollNo] = 'Present';
+      classStudents.forEach((s: any) => {
+        initialAttendance[s.rollNo] = 'Absent';
       });
       setAttendance(initialAttendance);
     } catch (error) {
@@ -59,11 +64,12 @@ export default function AttendanceScreen() {
       const attendanceList = students.map(s => ({
         rollNo: s.rollNo,
         name: s.name,
-        status: attendance[s.rollNo] || 'Present'
+        status: attendance[s.rollNo] || 'Absent'
       }));
 
       await attendanceAPI.submit({
         date,
+        className: selectedClass,
         subject,
         period,
         markedBy: 'teacher',
@@ -74,13 +80,7 @@ export default function AttendanceScreen() {
         {
           text: 'OK',
           onPress: () => {
-            // Reset to all Present
-            const reset: any = {};
-            students.forEach(s => {
-              reset[s.rollNo] = 'Present';
-            });
-            setAttendance(reset);
-            fetchStudents(); // Refresh to see updated percentages
+            fetchStudents();
           }
         }
       ]);
@@ -94,83 +94,74 @@ export default function AttendanceScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size='large' color={COLORS.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mark Attendance</Text>
         <Text style={styles.headerSubtitle}>Date: {format(new Date(date), 'dd MMM yyyy')}</Text>
       </View>
 
       <View style={styles.controls}>
-        <View style={styles.dropdownContainer}>
-          <Text style={styles.label}>Subject</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.chipGroup}>
-              {subjects.map(sub => (
-                <TouchableOpacity
-                  key={sub}
-                  style={[
-                    styles.chip,
-                    subject === sub && styles.chipActive
-                  ]}
-                  onPress={() => setSubject(sub)}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      subject === sub && styles.chipTextActive
-                    ]}
-                  >
-                    {sub}
-                  </Text>
-                </TouchableOpacity>
+        <View style={styles.pickerContainer}>
+          <Text style={styles.label}>Class</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={selectedClass}
+              onValueChange={setSelectedClass}
+              style={styles.picker}
+            >
+              {classes.map(cls => (
+                <Picker.Item key={cls} label={cls} value={cls} />
               ))}
-            </View>
-          </ScrollView>
+            </Picker>
+          </View>
         </View>
 
-        <View style={styles.dropdownContainer}>
-          <Text style={styles.label}>Period</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.chipGroup}>
-              {periods.map(p => (
-                <TouchableOpacity
-                  key={p}
-                  style={[
-                    styles.chip,
-                    period === p && styles.chipActive
-                  ]}
-                  onPress={() => setPeriod(p)}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      period === p && styles.chipTextActive
-                    ]}
-                  >
-                    Period {p}
-                  </Text>
-                </TouchableOpacity>
+        <View style={styles.pickerContainer}>
+          <Text style={styles.label}>Subject</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={subject}
+              onValueChange={setSubject}
+              style={styles.picker}
+            >
+              {subjects.map(sub => (
+                <Picker.Item key={sub} label={sub} value={sub} />
               ))}
-            </View>
-          </ScrollView>
+            </Picker>
+          </View>
+        </View>
+
+        <View style={styles.pickerContainer}>
+          <Text style={styles.label}>Period</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={period}
+              onValueChange={setPeriod}
+              style={styles.picker}
+            >
+              {periods.map(p => (
+                <Picker.Item key={p} label={`Period ${p}`} value={p} />
+              ))}
+            </Picker>
+          </View>
         </View>
       </View>
 
       <ScrollView style={styles.studentList}>
         {students.map(student => {
-          const isAbsent = attendance[student.rollNo] === 'Absent';
+          const isPresent = attendance[student.rollNo] === 'Present';
           return (
             <TouchableOpacity
               key={student.rollNo}
               style={[
                 styles.studentCard,
-                isAbsent && styles.studentCardAbsent
+                isPresent && styles.studentCardPresent
               ]}
               onPress={() => toggleAttendance(student.rollNo)}
             >
@@ -182,15 +173,15 @@ export default function AttendanceScreen() {
                 <Text
                   style={[
                     styles.statusText,
-                    isAbsent && styles.statusTextAbsent
+                    isPresent && styles.statusTextPresent
                   ]}
                 >
                   {attendance[student.rollNo]}
                 </Text>
                 <Ionicons
-                  name={isAbsent ? 'close-circle' : 'checkmark-circle'}
+                  name={isPresent ? 'checkmark-circle' : 'close-circle'}
                   size={32}
-                  color={isAbsent ? COLORS.danger : COLORS.accent}
+                  color={isPresent ? COLORS.accent : COLORS.danger}
                 />
               </View>
             </TouchableOpacity>
@@ -209,7 +200,7 @@ export default function AttendanceScreen() {
           <Text style={styles.submitButtonText}>Submit Attendance</Text>
         )}
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -226,12 +217,13 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: SPACING.md,
+    paddingTop: SPACING.sm,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border
   },
   headerTitle: {
-    fontSize: FONTS.sizes.xl,
+    fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.primary,
     marginBottom: SPACING.xs
@@ -244,10 +236,11 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border
+    borderBottomColor: COLORS.border,
+    gap: SPACING.sm
   },
-  dropdownContainer: {
-    marginBottom: SPACING.md
+  pickerContainer: {
+    marginBottom: SPACING.xs
   },
   label: {
     fontSize: FONTS.sizes.md,
@@ -255,29 +248,15 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.xs
   },
-  chipGroup: {
-    flexDirection: 'row',
-    gap: SPACING.sm
-  },
-  chip: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 20,
+  pickerWrapper: {
     borderWidth: 1,
     borderColor: COLORS.border,
-    backgroundColor: COLORS.white
+    borderRadius: 8,
+    backgroundColor: COLORS.white,
+    overflow: 'hidden'
   },
-  chipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary
-  },
-  chipText: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.text,
-    fontWeight: '600'
-  },
-  chipTextActive: {
-    color: COLORS.white
+  picker: {
+    height: 50
   },
   studentList: {
     flex: 1,
@@ -287,21 +266,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: '#FFEBEE',
     padding: SPACING.md,
     borderRadius: 12,
     marginBottom: SPACING.sm,
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.accent,
+    borderLeftColor: COLORS.danger,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2
   },
-  studentCardAbsent: {
-    backgroundColor: '#FFEBEE',
-    borderLeftColor: COLORS.danger
+  studentCardPresent: {
+    backgroundColor: COLORS.white,
+    borderLeftColor: COLORS.accent
   },
   studentInfo: {
     flex: 1
@@ -324,10 +303,10 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
-    color: COLORS.accent
-  },
-  statusTextAbsent: {
     color: COLORS.danger
+  },
+  statusTextPresent: {
+    color: COLORS.accent
   },
   submitButton: {
     backgroundColor: COLORS.primary,
