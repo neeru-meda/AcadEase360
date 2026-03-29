@@ -127,7 +127,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background
+    backgroundColor: COLORS.primary
   },
   scrollContent: {
     flexGrow: 1,
@@ -146,12 +146,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONTS.sizes.xxl,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.white,
     marginBottom: SPACING.xs
   },
   subtitle: {
     fontSize: FONTS.sizes.md,
-    color: COLORS.darkGray
+    color: '#FFCCCC'
   },
   card: {
     backgroundColor: COLORS.white,
