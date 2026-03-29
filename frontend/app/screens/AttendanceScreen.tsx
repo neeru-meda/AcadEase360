@@ -22,12 +22,16 @@ export default function AttendanceScreen() {
   const [selectedClass, setSelectedClass] = useState('Class A');
   const [subject, setSubject] = useState('');
   const [period, setPeriod] = useState('');
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [attendance, setAttendance] = useState<{ [key: string]: string }>({});
 
   const classes = ['Class A', 'Class B', 'Class C', 'Class D'];
   const subjects = ['Math', 'DBMS', 'OS', 'CN', 'SE'];
   const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5', 'Period 6'];
+
+  // Get current date dynamically
+  const currentDate = new Date();
+  const formattedDate = format(currentDate, 'dd-MM-yyyy');
+  const dateForAPI = format(currentDate, 'yyyy-MM-dd');
 
   useEffect(() => {
     fetchStudents();
@@ -73,10 +77,10 @@ export default function AttendanceScreen() {
       }));
 
       await attendanceAPI.submit({
-        date,
+        date: dateForAPI,
         className: selectedClass,
         subject,
-        period: period.split(' ')[1], // Extract number from "Period 1"
+        period: period.split(' ')[1],
         markedBy: 'teacher',
         attendance: attendanceList
       });
@@ -137,8 +141,8 @@ export default function AttendanceScreen() {
             <View style={styles.dateContainer}>
               <Text style={styles.label}>Date</Text>
               <View style={styles.dateBox}>
-                <Ionicons name="calendar-outline" size={20} color={COLORS.darkGray} />
-                <Text style={styles.dateText}>{format(new Date(date), 'dd-MM-yyyy')}</Text>
+                <Ionicons name="calendar-outline" size={18} color={COLORS.darkGray} />
+                <Text style={styles.dateText} numberOfLines={1}>{formattedDate}</Text>
               </View>
             </View>
             <CustomDropdown
@@ -268,7 +272,7 @@ const styles = StyleSheet.create({
   dateBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: SPACING.xs,
     backgroundColor: COLORS.white,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -277,8 +281,9 @@ const styles = StyleSheet.create({
     minHeight: 50
   },
   dateText: {
-    fontSize: FONTS.sizes.md,
-    color: COLORS.text
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.text,
+    flex: 1
   },
   summaryRow: {
     flexDirection: 'row',
