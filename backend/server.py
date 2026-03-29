@@ -37,14 +37,17 @@ logger = logging.getLogger(__name__)
 # ============================================
 
 class SubjectAttendance(BaseModel):
-    math: float = 0.0
-    dbms: float = 0.0
-    os: float = 0.0
+    math: float = 100.0
+    dbms: float = 100.0
+    os: float = 100.0
+    cn: float = 100.0  # Computer Networks
+    se: float = 100.0  # Software Engineering
 
 class Student(BaseModel):
     student_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     rollNo: str
     name: str
+    className: str = "Class A"  # Class A, B, C, D
     course: str = "B.Tech CSE"
     email: str
     attendancePercent: float = 100.0
@@ -54,7 +57,6 @@ class Student(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
-    role: str  # Teacher or Admin
 
 class LoginResponse(BaseModel):
     success: bool
@@ -64,6 +66,7 @@ class LoginResponse(BaseModel):
 class AttendanceRecord(BaseModel):
     record_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     date: str
+    className: str
     subject: str
     period: str
     markedBy: str  # teacher username
@@ -72,6 +75,7 @@ class AttendanceRecord(BaseModel):
 
 class AttendanceSubmission(BaseModel):
     date: str
+    className: str
     subject: str
     period: str
     markedBy: str
@@ -82,6 +86,7 @@ class Alert(BaseModel):
     student_id: str
     rollNo: str
     name: str
+    className: str
     attendancePercent: float
     status: str = "Pending"  # Pending or Sent
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -99,36 +104,40 @@ class LetterRequest(BaseModel):
 # ============================================
 
 SEED_STUDENTS = [
-    {"rollNo": "R001", "name": "Aarav Kumar", "email": "aarav.kumar@student.au.edu"},
-    {"rollNo": "R002", "name": "Vivaan Singh", "email": "vivaan.singh@student.au.edu"},
-    {"rollNo": "R003", "name": "Aditya Patel", "email": "aditya.patel@student.au.edu"},
-    {"rollNo": "R004", "name": "Vihaan Sharma", "email": "vihaan.sharma@student.au.edu"},
-    {"rollNo": "R005", "name": "Arjun Reddy", "email": "arjun.reddy@student.au.edu"},
-    {"rollNo": "R006", "name": "Sai Krishna", "email": "sai.krishna@student.au.edu"},
-    {"rollNo": "R007", "name": "Reyansh Gupta", "email": "reyansh.gupta@student.au.edu"},
-    {"rollNo": "R008", "name": "Ayaan Verma", "email": "ayaan.verma@student.au.edu"},
-    {"rollNo": "R009", "name": "Krishna Rao", "email": "krishna.rao@student.au.edu"},
-    {"rollNo": "R010", "name": "Ishaan Nair", "email": "ishaan.nair@student.au.edu"},
-    {"rollNo": "R011", "name": "Ananya Iyer", "email": "ananya.iyer@student.au.edu"},
-    {"rollNo": "R012", "name": "Diya Menon", "email": "diya.menon@student.au.edu"},
-    {"rollNo": "R013", "name": "Saanvi Rao", "email": "saanvi.rao@student.au.edu"},
-    {"rollNo": "R014", "name": "Aadhya Nair", "email": "aadhya.nair@student.au.edu"},
-    {"rollNo": "R015", "name": "Navya Reddy", "email": "navya.reddy@student.au.edu"},
-    {"rollNo": "R016", "name": "Priya Singh", "email": "priya.singh@student.au.edu"},
-    {"rollNo": "R017", "name": "Kavya Kumar", "email": "kavya.kumar@student.au.edu"},
-    {"rollNo": "R018", "name": "Riya Sharma", "email": "riya.sharma@student.au.edu"},
-    {"rollNo": "R019", "name": "Aditi Patel", "email": "aditi.patel@student.au.edu"},
-    {"rollNo": "R020", "name": "Shriya Gupta", "email": "shriya.gupta@student.au.edu"},
-    {"rollNo": "R021", "name": "Rohan Das", "email": "rohan.das@student.au.edu"},
-    {"rollNo": "R022", "name": "Karan Verma", "email": "karan.verma@student.au.edu"},
-    {"rollNo": "R023", "name": "Pranav Joshi", "email": "pranav.joshi@student.au.edu"},
-    {"rollNo": "R024", "name": "Harsh Mehta", "email": "harsh.mehta@student.au.edu"},
-    {"rollNo": "R025", "name": "Dev Patel", "email": "dev.patel@student.au.edu"},
-    {"rollNo": "R026", "name": "Meera Iyer", "email": "meera.iyer@student.au.edu"},
-    {"rollNo": "R027", "name": "Tara Reddy", "email": "tara.reddy@student.au.edu"},
-    {"rollNo": "R028", "name": "Nidhi Sharma", "email": "nidhi.sharma@student.au.edu"},
-    {"rollNo": "R029", "name": "Pooja Kumar", "email": "pooja.kumar@student.au.edu"},
-    {"rollNo": "R030", "name": "Sneha Singh", "email": "sneha.singh@student.au.edu"}
+    # Class A (8 students)
+    {"rollNo": "R001", "name": "Aarav Kumar", "email": "aarav.kumar@student.au.edu", "className": "Class A"},
+    {"rollNo": "R002", "name": "Vivaan Singh", "email": "vivaan.singh@student.au.edu", "className": "Class A"},
+    {"rollNo": "R003", "name": "Aditya Patel", "email": "aditya.patel@student.au.edu", "className": "Class A"},
+    {"rollNo": "R004", "name": "Vihaan Sharma", "email": "vihaan.sharma@student.au.edu", "className": "Class A"},
+    {"rollNo": "R005", "name": "Arjun Reddy", "email": "arjun.reddy@student.au.edu", "className": "Class A"},
+    {"rollNo": "R006", "name": "Sai Krishna", "email": "sai.krishna@student.au.edu", "className": "Class A"},
+    {"rollNo": "R007", "name": "Reyansh Gupta", "email": "reyansh.gupta@student.au.edu", "className": "Class A"},
+    {"rollNo": "R008", "name": "Ayaan Verma", "email": "ayaan.verma@student.au.edu", "className": "Class A"},
+    # Class B (7 students)
+    {"rollNo": "R009", "name": "Krishna Rao", "email": "krishna.rao@student.au.edu", "className": "Class B"},
+    {"rollNo": "R010", "name": "Ishaan Nair", "email": "ishaan.nair@student.au.edu", "className": "Class B"},
+    {"rollNo": "R011", "name": "Ananya Iyer", "email": "ananya.iyer@student.au.edu", "className": "Class B"},
+    {"rollNo": "R012", "name": "Diya Menon", "email": "diya.menon@student.au.edu", "className": "Class B"},
+    {"rollNo": "R013", "name": "Saanvi Rao", "email": "saanvi.rao@student.au.edu", "className": "Class B"},
+    {"rollNo": "R014", "name": "Aadhya Nair", "email": "aadhya.nair@student.au.edu", "className": "Class B"},
+    {"rollNo": "R015", "name": "Navya Reddy", "email": "navya.reddy@student.au.edu", "className": "Class B"},
+    # Class C (8 students)
+    {"rollNo": "R016", "name": "Priya Singh", "email": "priya.singh@student.au.edu", "className": "Class C"},
+    {"rollNo": "R017", "name": "Kavya Kumar", "email": "kavya.kumar@student.au.edu", "className": "Class C"},
+    {"rollNo": "R018", "name": "Riya Sharma", "email": "riya.sharma@student.au.edu", "className": "Class C"},
+    {"rollNo": "R019", "name": "Aditi Patel", "email": "aditi.patel@student.au.edu", "className": "Class C"},
+    {"rollNo": "R020", "name": "Shriya Gupta", "email": "shriya.gupta@student.au.edu", "className": "Class C"},
+    {"rollNo": "R021", "name": "Rohan Das", "email": "rohan.das@student.au.edu", "className": "Class C"},
+    {"rollNo": "R022", "name": "Karan Verma", "email": "karan.verma@student.au.edu", "className": "Class C"},
+    {"rollNo": "R023", "name": "Pranav Joshi", "email": "pranav.joshi@student.au.edu", "className": "Class C"},
+    # Class D (7 students)
+    {"rollNo": "R024", "name": "Harsh Mehta", "email": "harsh.mehta@student.au.edu", "className": "Class D"},
+    {"rollNo": "R025", "name": "Dev Patel", "email": "dev.patel@student.au.edu", "className": "Class D"},
+    {"rollNo": "R026", "name": "Meera Iyer", "email": "meera.iyer@student.au.edu", "className": "Class D"},
+    {"rollNo": "R027", "name": "Tara Reddy", "email": "tara.reddy@student.au.edu", "className": "Class D"},
+    {"rollNo": "R028", "name": "Nidhi Sharma", "email": "nidhi.sharma@student.au.edu", "className": "Class D"},
+    {"rollNo": "R029", "name": "Pooja Kumar", "email": "pooja.kumar@student.au.edu", "className": "Class D"},
+    {"rollNo": "R030", "name": "Sneha Singh", "email": "sneha.singh@student.au.edu", "className": "Class D"}
 ]
 
 # ============================================
@@ -137,12 +146,12 @@ SEED_STUDENTS = [
 
 @api_router.post("/seed-data")
 async def seed_data():
-    """Initialize database with 30 students"""
+    """Initialize database with 30 students across 4 classes"""
     try:
-        # Check if already seeded
-        existing = await db.students.count_documents({})
-        if existing > 0:
-            return {"message": "Database already seeded", "count": existing}
+        # Clear existing data for fresh seed
+        await db.students.delete_many({})
+        await db.alerts.delete_many({})
+        await db.attendance_records.delete_many({})
         
         # Create students with varying attendance
         students = []
@@ -154,11 +163,14 @@ async def seed_data():
                 rollNo=seed_student["rollNo"],
                 name=seed_student["name"],
                 email=seed_student["email"],
+                className=seed_student["className"],
                 attendancePercent=base_attendance,
                 subjectAttendance=SubjectAttendance(
                     math=base_attendance + (i % 5),
                     dbms=base_attendance - (i % 3),
-                    os=base_attendance + (i % 4)
+                    os=base_attendance + (i % 4),
+                    cn=base_attendance - (i % 2),
+                    se=base_attendance + (i % 3)
                 ),
                 status="Eligible" if base_attendance >= 75.0 else "Shortage"
             )
@@ -174,6 +186,7 @@ async def seed_data():
                     student_id=student["student_id"],
                     rollNo=student["rollNo"],
                     name=student["name"],
+                    className=student["className"],
                     attendancePercent=student["attendancePercent"]
                 )
                 alerts.append(alert.dict())
@@ -192,9 +205,9 @@ async def seed_data():
 
 @api_router.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest):
-    """Simple login - hardcoded credentials for demo"""
+    """Login without role - role auto-detected from username"""
     try:
-        # Hardcoded credentials
+        # Hardcoded credentials - role detected from username
         valid_users = {
             "teacher": {"password": "teacher123", "role": "Teacher", "name": "Dr. Ramesh Kumar"},
             "admin": {"password": "admin123", "role": "Admin", "name": "Prof. Suresh Babu"}
@@ -202,13 +215,13 @@ async def login(request: LoginRequest):
         
         user = valid_users.get(request.username.lower())
         
-        if user and user["password"] == request.password and user["role"] == request.role:
+        if user and user["password"] == request.password:
             return LoginResponse(
                 success=True,
                 message="Login successful",
                 user={
                     "username": request.username,
-                    "role": request.role,
+                    "role": user["role"],
                     "name": user["name"]
                 }
             )
@@ -222,10 +235,14 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/students")
-async def get_students():
-    """Get all students"""
+async def get_students(className: Optional[str] = None):
+    """Get all students, optionally filtered by class"""
     try:
-        students = await db.students.find({}, {"_id": 0}).to_list(100)
+        query = {}
+        if className:
+            query["className"] = className
+            
+        students = await db.students.find(query, {"_id": 0}).to_list(100)
         return {"students": students}
     except Exception as e:
         logger.error(f"Get students error: {str(e)}")
@@ -293,6 +310,7 @@ async def submit_attendance(submission: AttendanceSubmission):
                                 student_id=student["student_id"],
                                 rollNo=student["rollNo"],
                                 name=student["name"],
+                                className=student["className"],
                                 attendancePercent=new_percent
                             )
                             await db.alerts.insert_one(alert.dict())
@@ -303,10 +321,14 @@ async def submit_attendance(submission: AttendanceSubmission):
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/alerts")
-async def get_alerts():
-    """Get all alerts"""
+async def get_alerts(className: Optional[str] = None):
+    """Get all alerts, optionally filtered by class"""
     try:
-        alerts = await db.alerts.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+        query = {}
+        if className:
+            query["className"] = className
+            
+        alerts = await db.alerts.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
         return {"alerts": alerts}
     except Exception as e:
         logger.error(f"Get alerts error: {str(e)}")
@@ -368,10 +390,14 @@ async def generate_letter(request: LetterRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/day-wise")
-async def get_day_wise_analytics(date: str):
+async def get_day_wise_analytics(date: str, className: Optional[str] = None):
     """Get students absent on a specific day"""
     try:
-        records = await db.attendance_records.find({"date": date}, {"_id": 0}).to_list(100)
+        query = {"date": date}
+        if className:
+            query["className"] = className
+            
+        records = await db.attendance_records.find(query, {"_id": 0}).to_list(100)
         absent_students = []
         
         for record in records:
@@ -380,6 +406,7 @@ async def get_day_wise_analytics(date: str):
                     absent_students.append({
                         "rollNo": entry["rollNo"],
                         "name": entry["name"],
+                        "className": record.get("className", "N/A"),
                         "subject": record["subject"],
                         "period": record["period"]
                     })
@@ -390,11 +417,16 @@ async def get_day_wise_analytics(date: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/subject-wise")
-async def get_subject_wise_analytics(subject: str):
+async def get_subject_wise_analytics(subject: str, className: Optional[str] = None):
     """Get students with low attendance in a subject"""
     try:
         subject_key = subject.lower()
-        students = await db.students.find({}, {"_id": 0}).to_list(100)
+        
+        query = {}
+        if className:
+            query["className"] = className
+            
+        students = await db.students.find(query, {"_id": 0}).to_list(100)
         
         low_attendance = []
         for student in students:
@@ -404,6 +436,7 @@ async def get_subject_wise_analytics(subject: str):
                     low_attendance.append({
                         "rollNo": student["rollNo"],
                         "name": student["name"],
+                        "className": student["className"],
                         "attendancePercent": percent,
                         "status": "Shortage"
                     })
@@ -414,10 +447,14 @@ async def get_subject_wise_analytics(subject: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/analytics/semester-wise")
-async def get_semester_wise_analytics():
+async def get_semester_wise_analytics(className: Optional[str] = None):
     """Get all students with eligibility status"""
     try:
-        students = await db.students.find({}, {"_id": 0}).to_list(100)
+        query = {}
+        if className:
+            query["className"] = className
+            
+        students = await db.students.find(query, {"_id": 0}).to_list(100)
         
         eligible = [s for s in students if s["status"] == "Eligible"]
         shortage = [s for s in students if s["status"] == "Shortage"]
@@ -430,6 +467,17 @@ async def get_semester_wise_analytics():
         }
     except Exception as e:
         logger.error(f"Semester-wise analytics error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/classes")
+async def get_classes():
+    """Get list of all classes"""
+    try:
+        return {
+            "classes": ["Class A", "Class B", "Class C", "Class D"]
+        }
+    except Exception as e:
+        logger.error(f"Get classes error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Include the router in the main app
