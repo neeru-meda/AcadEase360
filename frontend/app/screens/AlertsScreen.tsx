@@ -10,6 +10,7 @@ import {
   RefreshControl
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONTS } from '../utils/theme';
 import { alertAPI } from '../utils/api';
 
@@ -53,7 +54,7 @@ export default function AlertsScreen() {
             try {
               await alertAPI.send(alertId);
               Alert.alert('Success', `Alert sent to ${studentName}!`);
-              fetchAlerts(); // Refresh list
+              fetchAlerts();
             } catch (error: any) {
               Alert.alert('Error', error.message || 'Failed to send alert');
             } finally {
@@ -68,107 +69,110 @@ export default function AlertsScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size='large' color={COLORS.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Alerts</Text>
-        <Text style={styles.headerSubtitle}>
-          {alerts.filter(a => a.status === 'Pending').length} Pending Alerts
-        </Text>
-      </View>
-
-      {alerts.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="checkmark-circle-outline" size={80} color={COLORS.accent} />
-          <Text style={styles.emptyTitle}>All Good!</Text>
-          <Text style={styles.emptyText}>
-            No attendance shortage alerts at the moment.
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <View style={styles.headerSection}>
+          <Text style={styles.headerTitle}>Alerts</Text>
+          <Text style={styles.headerSubtitle}>
+            Manage attendance shortage notifications
           </Text>
         </View>
-      ) : (
-        <ScrollView
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          {alerts.map(alert => (
-            <View
-              key={alert.alert_id}
-              style={[
-                styles.alertCard,
-                alert.status === 'Sent' && styles.alertCardSent
-              ]}
-            >
-              <View style={styles.alertHeader}>
-                <View style={styles.alertIcon}>
-                  <Ionicons
-                    name={alert.status === 'Sent' ? 'mail' : 'alert-circle'}
-                    size={24}
-                    color={alert.status === 'Sent' ? COLORS.darkGray : COLORS.danger}
-                  />
-                </View>
-                <View style={styles.alertInfo}>
-                  <Text style={styles.alertName}>{alert.name}</Text>
-                  <Text style={styles.alertRoll}>{alert.rollNo}</Text>
-                </View>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    alert.status === 'Sent' ? styles.statusBadgeSent : styles.statusBadgePending
-                  ]}
-                >
-                  <Text style={styles.statusBadgeText}>{alert.status}</Text>
-                </View>
-              </View>
 
-              <View style={styles.alertContent}>
-                <View style={styles.attendanceInfo}>
-                  <Ionicons name="bar-chart" size={20} color={COLORS.danger} />
-                  <Text style={styles.attendanceLabel}>Attendance:</Text>
-                  <Text style={styles.attendanceValue}>
-                    {alert.attendancePercent.toFixed(1)}%
-                  </Text>
-                  <View style={styles.shortageTag}>
-                    <Text style={styles.shortageTagText}>Below 75%</Text>
+        {alerts.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="checkmark-circle-outline" size={80} color={COLORS.accent} />
+            <Text style={styles.emptyTitle}>All Good!</Text>
+            <Text style={styles.emptyText}>
+              No attendance shortage alerts at the moment.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.alertsList}>
+            {alerts.map(alert => (
+              <View
+                key={alert.alert_id}
+                style={[
+                  styles.alertCard,
+                  alert.status === 'Sent' && styles.alertCardSent
+                ]}
+              >
+                <View style={styles.alertHeader}>
+                  <View style={styles.alertIconContainer}>
+                    <Ionicons
+                      name={alert.status === 'Sent' ? 'mail' : 'alert-circle'}
+                      size={28}
+                      color={alert.status === 'Sent' ? COLORS.accent : COLORS.danger}
+                    />
                   </View>
-                </View>
-
-                {alert.status === 'Pending' && (
-                  <TouchableOpacity
-                    style={styles.sendButton}
-                    onPress={() => handleSendAlert(alert.alert_id, alert.name)}
-                    disabled={sending === alert.alert_id}
-                  >
-                    {sending === alert.alert_id ? (
-                      <ActivityIndicator size="small" color={COLORS.white} />
-                    ) : (
-                      <>
-                        <Ionicons name="send" size={18} color={COLORS.white} />
-                        <Text style={styles.sendButtonText}>Send Alert</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                )}
-
-                {alert.status === 'Sent' && alert.sent_at && (
-                  <View style={styles.sentInfo}>
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.accent} />
-                    <Text style={styles.sentText}>
-                      Sent on {new Date(alert.sent_at).toLocaleDateString()}
+                  <View style={styles.alertInfo}>
+                    <Text style={styles.alertName}>{alert.name}</Text>
+                    <Text style={styles.alertDetails}>
+                      {alert.rollNo} • {alert.className}
                     </Text>
                   </View>
-                )}
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      alert.status === 'Sent' ? styles.statusBadgeSent : styles.statusBadgePending
+                    ]}
+                  >
+                    <Text style={styles.statusBadgeText}>{alert.status}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.alertContent}>
+                  <View style={styles.attendanceInfo}>
+                    <Ionicons name="bar-chart" size={20} color={COLORS.danger} />
+                    <Text style={styles.attendanceLabel}>Attendance:</Text>
+                    <Text style={styles.attendanceValue}>
+                      {alert.attendancePercent.toFixed(1)}%
+                    </Text>
+                    <View style={styles.shortageTag}>
+                      <Text style={styles.shortageTagText}>Below 75%</Text>
+                    </View>
+                  </View>
+
+                  {alert.status === 'Pending' && (
+                    <TouchableOpacity
+                      style={styles.sendButton}
+                      onPress={() => handleSendAlert(alert.alert_id, alert.name)}
+                      disabled={sending === alert.alert_id}
+                    >
+                      {sending === alert.alert_id ? (
+                        <ActivityIndicator size="small" color={COLORS.white} />
+                      ) : (
+                        <>
+                          <Ionicons name="send" size={18} color={COLORS.white} />
+                          <Text style={styles.sendButtonText}>Send Alert</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
+
+                  {alert.status === 'Sent' && alert.sent_at && (
+                    <View style={styles.sentInfo}>
+                      <Ionicons name="checkmark-circle" size={16} color={COLORS.accent} />
+                      <Text style={styles.sentText}>
+                        Sent on {new Date(alert.sent_at).toLocaleDateString()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
-            </View>
-          ))}
-        </ScrollView>
-      )}
-    </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -183,27 +187,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.background
   },
-  header: {
-    padding: SPACING.md,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border
+  headerSection: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
+    marginBottom: SPACING.sm
   },
   headerTitle: {
-    fontSize: FONTS.sizes.xl,
+    fontSize: 28,
     fontWeight: 'bold',
     color: COLORS.primary,
     marginBottom: SPACING.xs
   },
   headerSubtitle: {
-    fontSize: FONTS.sizes.sm,
-    color: COLORS.darkGray
+    fontSize: FONTS.sizes.md,
+    color: COLORS.darkGray,
+    lineHeight: 22
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.xl
+    padding: SPACING.xl,
+    marginTop: SPACING.xxl
   },
   emptyTitle: {
     fontSize: FONTS.sizes.xl,
@@ -217,42 +223,39 @@ const styles = StyleSheet.create({
     color: COLORS.darkGray,
     textAlign: 'center'
   },
-  list: {
-    flex: 1
-  },
-  listContent: {
-    padding: SPACING.md
+  alertsList: {
+    padding: SPACING.md,
+    gap: SPACING.md
   },
   alertCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
+    borderRadius: 16,
+    padding: SPACING.lg,
     borderLeftWidth: 4,
     borderLeftColor: COLORS.danger,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2
+    shadowRadius: 8,
+    elevation: 3
   },
   alertCardSent: {
-    borderLeftColor: COLORS.darkGray,
-    opacity: 0.7
+    borderLeftColor: COLORS.accent,
+    opacity: 0.8
   },
   alertHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.md
+    marginBottom: SPACING.md,
+    gap: SPACING.md
   },
-  alertIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  alertIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#FFEBEE',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SPACING.sm
+    alignItems: 'center'
   },
   alertInfo: {
     flex: 1
@@ -261,16 +264,16 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizes.md,
     fontWeight: 'bold',
     color: COLORS.text,
-    marginBottom: SPACING.xs
+    marginBottom: 4
   },
-  alertRoll: {
+  alertDetails: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.darkGray
   },
   statusBadge: {
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
-    borderRadius: 12
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 6,
+    borderRadius: 16
   },
   statusBadgePending: {
     backgroundColor: COLORS.warning
@@ -290,13 +293,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    padding: SPACING.sm,
+    padding: SPACING.md,
     backgroundColor: '#FFEBEE',
-    borderRadius: 8
+    borderRadius: 12
   },
   attendanceLabel: {
     fontSize: FONTS.sizes.sm,
-    color: COLORS.text
+    color: COLORS.text,
+    fontWeight: '600'
   },
   attendanceValue: {
     fontSize: FONTS.sizes.md,
@@ -307,8 +311,8 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     backgroundColor: COLORS.danger,
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: 8
+    paddingVertical: 4,
+    borderRadius: 12
   },
   shortageTagText: {
     fontSize: FONTS.sizes.xs,
@@ -319,11 +323,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: COLORS.primary,
     padding: SPACING.md,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     gap: SPACING.sm,
-    minHeight: 44
+    minHeight: 50
   },
   sendButtonText: {
     fontSize: FONTS.sizes.md,
@@ -334,9 +338,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
-    padding: SPACING.sm,
+    padding: SPACING.md,
     backgroundColor: COLORS.lightGray,
-    borderRadius: 8
+    borderRadius: 12
   },
   sentText: {
     fontSize: FONTS.sizes.sm,

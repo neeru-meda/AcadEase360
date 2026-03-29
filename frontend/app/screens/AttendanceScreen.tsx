@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: COLORS.primary,
     marginBottom: SPACING.xs
   },
   headerSubtitle: {
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONTS.sizes.lg,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: COLORS.primary,
     marginBottom: SPACING.md
   },
   studentCard: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   studentName: {
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
-    color: COLORS.text,
+    color: COLORS.primary,
     marginBottom: 4
   },
   studentRoll: {

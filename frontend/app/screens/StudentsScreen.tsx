@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: COLORS.primary,
     marginBottom: SPACING.xs
   },
   headerSubtitle: {
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: FONTS.sizes.md,
-    color: COLORS.text,
+    color: COLORS.primary,
     padding: 0
   },
   clearButton: {
