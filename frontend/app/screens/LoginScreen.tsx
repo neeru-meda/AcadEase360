@@ -24,6 +24,7 @@ export default function LoginScreen() {
   const { setUser } = useUser();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState('Teacher');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -64,19 +65,21 @@ export default function LoginScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.logoContainer}>
-          <Image 
-            source={{ uri: AU_LOGO_URL }} 
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+        <View style={styles.card}>
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Image 
+              source={{ uri: AU_LOGO_URL }} 
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* Title */}
           <Text style={styles.title}>AcadEase 360°</Text>
           <Text style={styles.subtitle}>AU CSSE Smart Utility</Text>
-        </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Login</Text>
-
+          {/* Username */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Username</Text>
             <TextInput
@@ -89,6 +92,7 @@ export default function LoginScreen() {
             />
           </View>
 
+          {/* Password */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
             <TextInput
@@ -101,6 +105,32 @@ export default function LoginScreen() {
             />
           </View>
 
+          {/* Role Selector */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Role</Text>
+            <View style={styles.roleRow}>
+              <TouchableOpacity 
+                style={styles.roleOption} 
+                onPress={() => setSelectedRole('Teacher')}
+              >
+                <View style={[styles.radioOuter, selectedRole === 'Teacher' && styles.radioOuterActive]}>
+                  {selectedRole === 'Teacher' && <View style={styles.radioInner} />}
+                </View>
+                <Text style={styles.roleText}>Teacher</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.roleOption} 
+                onPress={() => setSelectedRole('Admin')}
+              >
+                <View style={[styles.radioOuter, selectedRole === 'Admin' && styles.radioOuterActive]}>
+                  {selectedRole === 'Admin' && <View style={styles.radioInner} />}
+                </View>
+                <Text style={styles.roleText}>Admin</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Login Button */}
           <TouchableOpacity
             style={styles.loginButton}
             onPress={handleLogin}
@@ -113,11 +143,8 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          <View style={styles.credentialsHint}>
-            <Text style={styles.hintText}>Demo Credentials:</Text>
-            <Text style={styles.hintText}>Teacher: teacher / teacher123</Text>
-            <Text style={styles.hintText}>Admin: admin / admin123</Text>
-          </View>
+          {/* Footer */}
+          <Text style={styles.footerText}>Andhra University - CSSE Department</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -134,83 +161,108 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: SPACING.lg
   },
+  card: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: 32,
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6
+  },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: SPACING.xl
-  },
-  logoImage: {
-    width: 100,
-    height: 100,
     marginBottom: SPACING.md
   },
+  logoImage: {
+    width: 90,
+    height: 90
+  },
   title: {
-    fontSize: FONTS.sizes.xxl,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.white,
-    marginBottom: SPACING.xs
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginBottom: 4
   },
   subtitle: {
     fontSize: FONTS.sizes.md,
-    color: '#FFCCCC'
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: SPACING.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4
-  },
-  cardTitle: {
-    fontSize: FONTS.sizes.xl,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SPACING.lg,
-    textAlign: 'center'
+    color: COLORS.darkGray,
+    textAlign: 'center',
+    marginBottom: 28
   },
   inputContainer: {
-    marginBottom: SPACING.md
+    marginBottom: SPACING.lg
   },
   label: {
     fontSize: FONTS.sizes.md,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: SPACING.xs
+    marginBottom: SPACING.sm
   },
   input: {
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 8,
+    borderRadius: 10,
     padding: SPACING.md,
     fontSize: FONTS.sizes.md,
     backgroundColor: COLORS.white,
+    color: COLORS.text,
+    minHeight: 50
+  },
+  roleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 32
+  },
+  roleOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 4
+  },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: COLORS.darkGray,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  radioOuterActive: {
+    borderColor: COLORS.primary
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.primary
+  },
+  roleText: {
+    fontSize: FONTS.sizes.md,
     color: COLORS.text
   },
   loginButton: {
     backgroundColor: COLORS.primary,
     padding: SPACING.md,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: SPACING.md,
-    minHeight: 48
+    marginTop: SPACING.sm,
+    minHeight: 52
   },
   loginButtonText: {
     fontSize: FONTS.sizes.lg,
     fontWeight: 'bold',
     color: COLORS.white
   },
-  credentialsHint: {
-    marginTop: SPACING.lg,
-    padding: SPACING.sm,
-    backgroundColor: COLORS.lightGray,
-    borderRadius: 8
-  },
-  hintText: {
+  footerText: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.darkGray,
     textAlign: 'center',
-    marginVertical: 2
+    marginTop: 20
   }
 });
